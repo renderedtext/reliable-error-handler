@@ -46,7 +46,7 @@ defmodule Wormhole do
       iex> capture(fn-> exit :foo end)
       {:error, {:shutdown, {:exit, :foo}}}
 
-      iex> capture(fn-> Process.exit(self, :foo) end)
+      iex> capture(fn-> Process.exit(self(), :foo) end)
       {:error, :foo}
 
       iex> capture(fn-> :timer.sleep 20 end, timeout_ms: 50)

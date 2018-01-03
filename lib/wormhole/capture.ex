@@ -14,25 +14,27 @@ defmodule Wormhole.Capture do
     crush_report = Keyword.get(options, :crush_report) || Defaults.crush_report
     stacktrace?  = Keyword.get(options, :stacktrace)   || Defaults.stacktrace
 
+    {:ok, supervisor} = Task.Supervisor.start_link(restart: :temporary, shutdown: 50)
+
     callback = callback |> Wormhole.CallbackWrapper.wrap(crush_report, stacktrace?)
-    task = Task.Supervisor.async_nolink(:wormhole_task_supervisor, callback)
+    task = Task.Supervisor.async_nolink(supervisor, callback)
 
-    task
-    |> Task.yield(timeout_ms)
-    |> task_demonitor(task)
-    |> task_silence(task)
-    |> response_format(timeout_ms)
+    response = Task.yield(task, timeout_ms)
+
+    supervisor_terminate(supervisor)
+    task_demonitor(task)
+    task_silence(task)
+
+    response_format(response, timeout_ms)
   end
 
-  defp task_demonitor(response, task) do
-    Map.get(task, :ref) |> Process.demonitor([:flush])
-    response
-  end
+  defp supervisor_terminate(supervisor), do: Process.exit(supervisor, :normal)
 
-  defp task_silence(response, task) do
-    Map.get(task, :pid) |> send({:wormhole_timeout, :silence})
-    response
-  end
+  defp task_demonitor(task), do:
+    task |> Map.get(:ref) |> Process.demonitor([:flush])
+
+  defp task_silence(task), do:
+    task |> Map.get(:pid) |> send({:wormhole_timeout, :silence})
 
   defp response_format({:ok,   state},  _)          do {:ok,    state} end
   defp response_format({:exit, reason}, _)          do {:error, reason} end

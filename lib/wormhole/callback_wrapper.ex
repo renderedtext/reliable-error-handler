@@ -31,12 +31,13 @@ defmodule Wormhole.CallbackWrapper do
     end
   end
 
-  defp exit_arg(error, stacktrace?=false), do:
+  defp exit_arg(error, _stacktrace?=false), do:
     {:shutdown, error}
-  defp exit_arg(key, error, stacktrace?=false), do:
-    {:shutdown, {key, error}}
-  defp exit_arg(error, stacktrace?=true), do:
+  defp exit_arg(error, _stacktrace?=true), do:
     {:shutdown, {error, System.stacktrace()}}
-  defp exit_arg(key, error, stacktrace?=true), do:
+
+  defp exit_arg(key, error, _stacktrace?=false), do:
+    {:shutdown, {key, error}}
+  defp exit_arg(key, error, _stacktrace?=true), do:
     {:shutdown, {key, error, System.stacktrace()}}
 end

@@ -2,6 +2,12 @@
 
 ![wormhole](wormhole.jpg)
 
+## Difference between v1 and v2
+In v1 callback that timed-out was left to run indefinitely.
+In v2, callback is terminated when it times-out.
+[Read more...](docs/v1_vs_v2.md)
+
+
 ## Description
 Wormhole captures anything that is emitted out of the callback
 (return value or error reason) and transfers it to the calling process
